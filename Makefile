@@ -2,13 +2,28 @@
 
 PREFIX?=/usr/local
 
-STATIC= -static 
-LDFLAGS+= -lpthread -lstdc++ $(STATIC)
+HOST_OS := $(shell uname -s)
 
-CXX_CANDIDATE!=which c++ || which g++ || which clang++
+ifeq ($(HOST_OS),Darwin)
+# macOS uses libc++ and does not support fully static executables.
+STATIC?=
+SDK_PATH := $(shell xcrun --show-sdk-path)
+CPPFLAGS+= -isystem "$(SDK_PATH)/usr/include/c++/v1"
+LDFLAGS+= -lpthread $(STATIC)
+else
+STATIC?= -static
+LDFLAGS+= -lpthread -lstdc++ $(STATIC)
+endif
+
+CXX_CANDIDATE := $(shell which c++ || which g++ || which clang++)
 CXX?= $(CXX_CANDIDATE) 
 
-OPTIMISATION+= -O3 -mtune=generic -funroll-all-loops -msse2 
+TARGET := $(shell $(CXX) -dumpmachine)
+OPTIMISATION+= -O3 -funroll-all-loops
+# These flags are specific to x86; use the compiler target, not the host CPU.
+ifneq (,$(filter x86_64% amd64% i386% i486% i586% i686%,$(TARGET)))
+OPTIMISATION+= -mtune=generic -msse2
+endif
 DEBUGGING= -ggdb3 -fverbose-asm 
 VERBOSITY= -v 
 WARNINGS= -Wno-write-strings -Wno-unused-result 

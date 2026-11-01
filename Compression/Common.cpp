@@ -975,9 +975,16 @@ double GetCPUTime (void)
 // Returns number of seconds spent in this thread
 double GetThreadCPUTime (void)
 {
+#ifdef __APPLE__
+  // Darwin has no RUSAGE_THREAD; use its per-thread CPU clock.
+  struct timespec ts;
+  int res = clock_gettime(CLOCK_THREAD_CPUTIME_ID, &ts);
+  return res? -1 : (ts.tv_sec + ((double)ts.tv_nsec) / 1000000000);
+#else
   struct rusage usage;
   int res = getrusage (RUSAGE_THREAD, &usage);
   return res? -1 : (usage.ru_utime.tv_sec + ((double)usage.ru_utime.tv_usec) / 1000000);
+#endif
 }
 #endif // FREEARC_UNIX
 
