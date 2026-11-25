@@ -9,7 +9,11 @@ char *program_homepage    = "http://freearc.org/research/SREP39.aspx";
 #include <set>
 #include <stack>
 #include <vector>
+#ifdef __APPLE__
+#include <stdlib.h>
+#else
 #include <malloc.h>
+#endif
 #include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -55,7 +59,7 @@ static struct {Offset max_offset, find_match, find_match_memaccess, check_hashar
 void error (int ExitCode, char *ErrmsgFormat...);   // Exit on error
 
 
-#if defined(_M_X64) || defined(_M_AMD64) || defined(__x86_64__)
+#ifdef FREEARC_64BIT
 #define _32_or_64(_32,_64) (_64)
 #define _32_only(_32)      (void(0))
 typedef size_t NUMBER;               // best choice for loop index variables on most 64-bit compilers

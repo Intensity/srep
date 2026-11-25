@@ -8,13 +8,17 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14, macos-15-intel]
+    runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Build srep
-      run: ./Makefile
+      run: make
 
-    - name: Test srep
-      run: bin/srep
+    - name: Test compression and decompression
+      run: python3 tests/roundtrip.py
